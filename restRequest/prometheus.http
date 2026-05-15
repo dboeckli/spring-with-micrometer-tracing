@@ -1,0 +1,8 @@
+# get buildInfo
+GET http://localhost:{{prometheus-port}}/api/v1/status/buildinfo
+
+### get all metrics
+GET http://localhost:{{prometheus-port}}/api/v1/label/__name__/values
+
+### get metrics: http_server_requests_seconds_count
+GET http://localhost:{{prometheus-port}}/api/v1/query?query=http_server_request_duration_seconds_count

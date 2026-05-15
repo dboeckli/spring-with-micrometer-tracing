@@ -1,0 +1,20 @@
+### get all metrics
+GET http://localhost:{{elasticsearch-port}}/metrics-*/_search
+
+### get metric: http.server.request.duration
+GET http://localhost:{{elasticsearch-port}}/metrics-*/_search
+Content-Type: application/json
+
+{
+    "size": 50,
+    "sort": [{ "@timestamp": { "order": "desc" } }],
+    "query": {
+        "bool": {
+            "filter": [
+                { "range": { "@timestamp": { "gte": "now-5m" } } },
+                { "term":  { "processor.event": "metric" } },
+                { "exists": { "field": "http.server.request.duration" } }
+            ]
+        }
+    }
+}
