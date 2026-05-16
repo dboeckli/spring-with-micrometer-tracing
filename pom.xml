@@ -154,6 +154,14 @@
           <groupId>io.zipkin.brave</groupId>
           <artifactId>brave</artifactId>
         </exclusion>
+        <exclusion>
+          <groupId>io.micrometer</groupId>
+          <artifactId>micrometer-tracing-reporter-wavefront</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.wavefront</groupId>
+          <artifactId>wavefront-sdk-java</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
 
