@@ -7,7 +7,7 @@
         <file>target/logs/spring.log</file>
 
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-            <fileNamePattern>logs/application.%d{yyyy-MM-dd}.%i.json.gz</fileNamePattern>
+            <fileNamePattern>target/logs/application.%d{yyyy-MM-dd}.%i.json.gz</fileNamePattern>
             <maxFileSize>100MB</maxFileSize>
             <maxHistory>30</maxHistory>
             <totalSizeCap>5GB</totalSizeCap>
@@ -63,7 +63,7 @@
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <!-- Trace-/Span-IDs aus MDC: OTel: traceId/spanId -->
-            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level ${application_name} %logger - [%X{trace_id}-%X{span_id}] %msg%n MDC=%X%n</pattern>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level ${application_name} %logger - [%X{traceId}-%X{spanId}] %msg%n MDC=%X%n</pattern>
         </encoder>
     </appender>
 

@@ -43,7 +43,7 @@ public class TracingWithJaegerAndZipkinIT {
         log.info("Hello response: status={}, body={}", helloResponse.getStatusCode(), helloResponse.getBody());
         assertEquals(HttpStatus.OK, helloResponse.getStatusCode());
 
-        String service = "spring-with-otel";
+        String service = "spring-with-micrometer-tracing";
         final String jaegerSearchUrl = "http://localhost:16686/api/traces?limit=20&lookback=1h&service="
                 + URLEncoder.encode(service, StandardCharsets.UTF_8);
 

@@ -54,7 +54,7 @@ class TracingWithElasticsearchIT {
                       "filter": [
                         { "range": { "@timestamp": { "gte": "now-5m" } } },
                         { "term":  { "processor.event": "span" } },
-                        { "term":  { "service.name": "spring-with-otel" } }
+                        { "term":  { "service.name": "spring-with-micrometer-tracing" } }
                       ]
                     }
                   }

@@ -1,8 +1,6 @@
 package ch.dboeckli.example.otel.tracing;
 
-import io.opentelemetry.api.baggage.Baggage;
-import io.opentelemetry.api.trace.Span;
-import io.opentelemetry.context.Scope;
+import io.micrometer.tracing.*;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -14,27 +12,52 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Map;
 
 @Component
 @Slf4j
 @Order(Ordered.LOWEST_PRECEDENCE)
 public class BaggageTaggingFilter extends OncePerRequestFilter {
 
+    private final Tracer tracer;
+
+    public BaggageTaggingFilter(Tracer tracer) {
+        this.tracer = tracer;
+    }
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
-        Baggage updatedBaggage = Baggage.current().toBuilder().put("addedBaggageByFilter", "echo").build();
+        CurrentTraceContext currentTraceContext = tracer.currentTraceContext();
+        Map<String, String> baggageMap = tracer.getAllBaggage(currentTraceContext.context());
 
-        try (Scope ignored = updatedBaggage.makeCurrent()) {
-            // 3. Optional: Alle Baggage-Felder (inkl. des neuen) als Span-Attribute
-            // setzen
-            // Damit sie in Elastic APM als Labels erscheinen
-            updatedBaggage.asMap().forEach((key, entry) -> Span.current().setAttribute(key, entry.getValue()));
-            // 4. Den Request weiterlaufen lassen (innerhalb des Scopes!)
+        log.info("### Hello from Baggage! {}", baggageMap);
+
+        Span currentSpan = tracer.currentSpan();
+
+        try (Tracer.SpanInScope _ = tracer.withSpan(currentSpan);
+                BaggageInScope _ = tracer.createBaggageInScope("addedBaggageByFilter", "echo from filter")) {
+
+            addCurrentBaggageFromRequest(currentSpan, baggageMap);
+
             filterChain.doFilter(request, response);
         }
 
+    }
+
+    /*
+     * here we add all baggage sent with the request. we need to set manually because it
+     * is not set like the addedBaggageByFilter
+     */
+    private void addCurrentBaggageFromRequest(Span currentSpan, Map<String, String> baggageMap) {
+        if (currentSpan != null && baggageMap != null) {
+            baggageMap.forEach((key, value) -> {
+                if (value != null) {
+                    currentSpan.tag(key, value);
+                }
+            });
+        }
     }
 
 }

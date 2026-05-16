@@ -3,7 +3,7 @@ server:
 
 spring:
   application:
-    name: spring-with-otel
+    name: spring-with-micrometer-tracing
   docker:
     compose:
       enabled: true
@@ -52,6 +52,33 @@ management:
   # --- OpenTelemetry / OTLP ---
   tracing:
     enabled: true   # enable tracing with OpenTelemetry
+    propagation:
+      type: w3c
+      produce: w3c
+      consume: w3c
+    baggage:
+      enabled: true
+      # Specify which baggage fields should be propagated to downstream services
+      correlation:
+        # Also make baggage available in MDC for logging
+        fields:
+          - testBaggage
+          - addedBaggageByFilter
+          - addedBaggageByController
+          - addedBaggageByService
+        enabled: true
+      # Erlaubt das Empfangen des Headers "baggage: testBaggage=..." der im http request gesetzt wird
+      remote-fields:
+        - testBaggage
+      # KOPIERT den Wert aus dem Baggage in die Span-Labels (Attributes)
+      tag-fields:
+        - testBaggage
+        - addedBaggageByFilter
+        - addedBaggageByController
+        - addedBaggageByService
+    sampling:
+      probability: 1.0
+
   otlp:
     tracing:
       endpoint: http://localhost:4318/v1/traces  # Collector
@@ -61,28 +88,7 @@ management:
       export:
         url: http://localhost:4318/v1/metrics     # Collector
         enabled: true  # Metrics to Collector
-        step: 60s
     logging:
       endpoint: http://localhost:4318/v1/logs     # Collector
       export:
         enabled: true  # Logs to Collector
-
-otel:
-  service:
-    name: ${spring.application.name}
-  exporter:
-    otlp:
-      endpoint: http://localhost:4318
-  metrics:
-    exporter: otlp
-  traces:
-    exporter: otlp
-    sampler:
-      arg: 1.0
-  logs:
-    exporter: otlp
-  instrumentation:
-    logback-mdc:
-      add-baggage: true
-      enabled: true
-  propagators: baggage,tracecontext

@@ -50,7 +50,7 @@ class HelloServiceTest {
         log.info("Tracer: {}", tracer);
 
         // HelloService so anpassen, dass er entweder Tracer injiziert bekommt
-        helloService = new HelloService(openTelemetry, "test-service", mockedBuildProperties);
+        helloService = new HelloService(null);
     }
 
     @AfterEach

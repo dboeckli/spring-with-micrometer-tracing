@@ -11,7 +11,7 @@ Siehe auch: https://last9.io/blog/opentelemetry-for-spring/
 
 ```
 ┌───────────────────────────────────────────────────────────────────────────────────────────┐
-│                       Anwendung (spring-with-otel) with opentelemetry-spring-boot-starter │
+│                       Anwendung (spring-with-micrometer-tracing) with opentelemetry-spring-boot-starter │
 └──────────────────────────────────────────────┬────────────────────────────────────────────┘
                                                │  Push OTLP (Traces)
                                                v
@@ -52,7 +52,7 @@ Hinweise:
 
 ```
 ┌───────────────────────────────────────────────────────────────────────────────────────────┐
-│                       Anwendung (spring-with-otel) with opentelemetry-spring-boot-starter │
+│                       Anwendung (spring-with-micrometer-tracing) with opentelemetry-spring-boot-starter │
 └────────────────┬──────────────────────────────────────────────────────────────────────────┘
                  │  Push OTLP (Metrics)
                  v
@@ -93,7 +93,7 @@ Hinweise:
 
 ```
 ┌───────────────────────────────────────────────────────────────────────────────────────────┐
-│                  Anwendung (spring-with-otel-starter) opentelemetry-spring-boot-starter   │
+│                  Anwendung (spring-with-micrometer-tracing-starter) opentelemetry-spring-boot-starter   │
 └───────────────┬───────────────────────────────────────────────────────────────────────────┘
                 │  Push OTLP (Logs)
                 v
@@ -152,7 +152,7 @@ folgende Ui's stehen zur Verfügung:
   - Unter `Status → Targets` sollte `otel-collector` als „UP“ erscheinen.
 - **Jaeger** – Traces
   - URL: `http://localhost:16686`
-  - Suche nach Services wie `spring-with-otel`.
+  - Suche nach Services wie `spring-with-micrometer-tracing`.
 - **Zipkin** – Traces (Alternative UI)
   - URL: `http://localhost:9411`
 - **Elasticsearch + Kibana** – Logs und (abhängig von APM-Konfiguration) Metriken/Traces

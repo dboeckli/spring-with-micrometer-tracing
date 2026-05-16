@@ -1,5 +1,7 @@
 package ch.dboeckli.example.otel.log;
 
+import io.micrometer.observation.Observation;
+import io.micrometer.observation.ObservationRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
@@ -20,8 +22,19 @@ public class ConfigChangeListener {
     private static final List<String> PASSWORD_KEY_LIST = Arrays.asList("jwt.key-value", "password", "credentials",
             "secret");
 
+    private final ObservationRegistry observationRegistry;
+
+    public ConfigChangeListener(ObservationRegistry observationRegistry) {
+        this.observationRegistry = observationRegistry;
+    }
+
     @EventListener
     public void handleContextRefresh(ContextRefreshedEvent event) {
+        Observation.createNotStarted("config.change.listener", observationRegistry)
+            .observe(() -> doHandleContextRefresh(event));
+    }
+
+    public void doHandleContextRefresh(ContextRefreshedEvent event) {
         final Environment env = event.getApplicationContext().getEnvironment();
         log.debug(LogMessage.RECEIVED_CONTEXT_REFRESH_EVENT.getMessage());
         log.info("Active profiles: {}", Arrays.toString(env.getActiveProfiles()));

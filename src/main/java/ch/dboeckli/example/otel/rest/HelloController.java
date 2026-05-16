@@ -1,16 +1,17 @@
 package ch.dboeckli.example.otel.rest;
 
 import ch.dboeckli.example.otel.service.HelloService;
-import io.opentelemetry.api.baggage.Baggage;
-import io.opentelemetry.api.trace.Span;
-import io.opentelemetry.context.Context;
-import io.opentelemetry.context.Scope;
+import io.micrometer.observation.annotation.Observed;
+import io.micrometer.tracing.BaggageInScope;
+import io.micrometer.tracing.CurrentTraceContext;
+import io.micrometer.tracing.Tracer;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Map;
 
 @RestController
 @Slf4j
@@ -20,19 +21,22 @@ public class HelloController {
 
     private final HelloService helloService;
 
-    public HelloController(HelloService helloService) {
+    private final Tracer tracer;
+
+    public HelloController(HelloService helloService, Tracer tracer) {
         this.helloService = helloService;
+        this.tracer = tracer;
     }
 
+    @Observed // is not really needed. it is observed by default
     @GetMapping("/hello")
     public ResponseEntity<String> hello() {
-        log.info("### HelloController.hello() 1");
-        Baggage baggage = Baggage.current().toBuilder().put("addedBaggageByController", "gugus").build();
+        CurrentTraceContext currentTraceContext = tracer.currentTraceContext();
+        Map<String, String> baggageMap = tracer.getAllBaggage(currentTraceContext.context());
 
-        try (Scope ignored = baggage.storeInContext(Context.current()).makeCurrent()) {
-            baggage.asMap().forEach((key, entry) -> Span.current().setAttribute(key, entry.getValue()));
-            log.info(HELLO_MESSAGE);
-            log.info("### HelloController.hello() 2");
+        log.info("### Hello from Baggage! " + baggageMap);
+
+        try (BaggageInScope _ = tracer.createBaggageInScope("addedBaggageByController", "echo from controller")) {
             helloService.processHello();
         }
 
