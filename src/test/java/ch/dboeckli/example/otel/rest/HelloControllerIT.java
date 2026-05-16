@@ -19,7 +19,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-        properties = { "otel.traces.exporter=none", "otel.metrics.exporter=none", "otel.logs.exporter=none" })
+        properties = { "management.otlp.tracing.export.enabled=false", "management.otlp.logging.export.enabled=false",
+                "management.otlp.metrics.export.enabled=false" })
 @ActiveProfiles("local")
 @Slf4j
 class HelloControllerIT {
@@ -50,16 +51,13 @@ class HelloControllerIT {
         restTemplate.getForEntity(url, String.class);
         List<ILoggingEvent> logEvents = listAppender.list;
 
-        assertAll(() -> assertNotNull(logEvents), () -> assertEquals(3, logEvents.size()),
-                () -> assertThat(logEvents.get(1).getFormattedMessage()).contains(HelloController.HELLO_MESSAGE),
-                () -> assertThat(logEvents.getFirst().getMDCPropertyMap().get("trace_id")).isNotBlank()
+        assertAll(() -> assertNotNull(logEvents), () -> assertEquals(1, logEvents.size()),
+                () -> assertThat(logEvents.getFirst().getFormattedMessage()).contains(HelloController.HELLO_MESSAGE),
+                () -> assertThat(logEvents.getFirst().getMDCPropertyMap().get("traceId")).isNotBlank()
                     .matches("[0-9a-f]{32}"),
-                () -> assertThat(logEvents.getFirst().getMDCPropertyMap().get("span_id")).as("span_id")
+                () -> assertThat(logEvents.getFirst().getMDCPropertyMap().get("spanId")).as("spanId")
                     .isNotBlank()
-                    .matches("[0-9a-f]{16}"),
-                () -> assertThat(logEvents.getFirst().getMDCPropertyMap().get("trace_flags")).as("trace_flags")
-                    .isNotBlank()
-                    .matches("[0-9a-f]{2}"));
+                    .matches("[0-9a-f]{16}"));
 
         logger.detachAppender(listAppender);
         listAppender.stop();

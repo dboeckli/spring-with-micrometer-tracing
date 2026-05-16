@@ -49,6 +49,21 @@ management:
       enabled: true
       mode: full
 
+  observations:
+    # activates the Observed annotation
+    annotations:
+      enabled: true
+    key-values: # Global Tags on all Observations
+      application: spring-with-micrometer-tracing
+      env: local
+    http:
+      client:
+        requests:
+          name: http.client.requests
+      server:
+        requests:
+          name: http.server.requests
+
   # --- OpenTelemetry / OTLP ---
   tracing:
     enabled: true   # enable tracing with OpenTelemetry

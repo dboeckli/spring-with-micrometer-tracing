@@ -21,3 +21,27 @@ Accept: application/json
 # traceparent: {version}-{trace-id}-{span-id}-{trace-flags}
 traceparent: 00-{{traceId}}-{{spanId}}-01
 baggage: testBaggage=hallo
+
+### say hello
+< {%
+    function randomHex(length) {
+        let result = '';
+        const chars = '0123456789abcdef';
+        for (let i = 0; i < length; i++) {
+            result += chars[Math.floor(Math.random() * chars.length)];
+        }
+        return result;
+    }
+
+    const traceId = randomHex(32);
+    const spanId  = randomHex(16);
+
+    request.variables.set("traceId", traceId);
+    request.variables.set("spanId", spanId);
+%}
+
+GET localhost:{{application-port}}/hello2
+Accept: application/json
+# traceparent: {version}-{trace-id}-{span-id}-{trace-flags}
+traceparent: 00-{{traceId}}-{{spanId}}-01
+baggage: testBaggage=hallo

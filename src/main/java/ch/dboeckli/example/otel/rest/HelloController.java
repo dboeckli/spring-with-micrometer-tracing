@@ -34,7 +34,7 @@ public class HelloController {
         CurrentTraceContext currentTraceContext = tracer.currentTraceContext();
         Map<String, String> baggageMap = tracer.getAllBaggage(currentTraceContext.context());
 
-        log.info("### Hello from Baggage! " + baggageMap);
+        log.info("{} with Baggage: {} ", HELLO_MESSAGE, baggageMap);
 
         try (BaggageInScope _ = tracer.createBaggageInScope("addedBaggageByController", "echo from controller")) {
             helloService.processHello();

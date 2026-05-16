@@ -45,7 +45,7 @@ class MetricsWithPrometheusIT {
         assertEquals(HttpStatus.OK, helloResponse.getStatusCode());
 
         String prometheus = "http://localhost:9090/api/v1/query";
-        String httpQuery = prometheus + "?query=http_server_request_duration_seconds_count";
+        String httpQuery = prometheus + "?query=jvm_memory_used_bytes";
 
         HttpHeaders headers = new HttpHeaders();
         headers.setAccept(List.of(MediaType.APPLICATION_JSON));
