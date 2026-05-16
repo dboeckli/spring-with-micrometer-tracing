@@ -1,6 +1,7 @@
 package ch.dboeckli.example.otel.tracing;
 
-import io.opentelemetry.api.trace.Span;
+import io.micrometer.tracing.Span;
+import io.micrometer.tracing.Tracer;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -15,11 +16,18 @@ import java.io.IOException;
 @Slf4j
 public class TraceParentFilter extends OncePerRequestFilter {
 
+    private final Tracer tracer;
+
+    public TraceParentFilter(Tracer tracer) {
+        this.tracer = tracer;
+    }
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
-        Span currentSpan = Span.current();
+        Span currentSpan = tracer.currentSpan();
+
         log.info("### currentSpan: {}", currentSpan);
 
         if (currentSpan == null) {
@@ -32,8 +40,8 @@ public class TraceParentFilter extends OncePerRequestFilter {
         if (traceParent == null || traceParent.isBlank()) {
             log.info("Traceparent was null or empty, setting traceparent header.");
 
-            String traceId = currentSpan.getSpanContext().getTraceId();
-            String spanId = currentSpan.getSpanContext().getSpanId();
+            String traceId = currentSpan.context().traceId();
+            String spanId = currentSpan.context().spanId();
 
             String traceParentValue = String.format("00-%s-%s-01", traceId, spanId);
             log.info("Setting traceparent header: {}", traceParentValue);
