@@ -3,7 +3,7 @@
     <option name="ACTIVE_PROFILES" value="local" />
     <log_file alias="spring.log" path="$PROJECT_DIR$/target/logs/spring.log" show_all="true" />
     <log_file alias="spring-ecs.log" path="$PROJECT_DIR$/target/logs/spring-ecs.log" show_all="true" />
-    <module name="spring-with-otel" />
+    <module name="spring-with-micrometer-tracing" />
     <option name="SPRING_BOOT_MAIN_CLASS" value="ch.dboeckli.example.otel.SpringApplication" />
     <method v="2">
       <option name="Make" enabled="true" />
