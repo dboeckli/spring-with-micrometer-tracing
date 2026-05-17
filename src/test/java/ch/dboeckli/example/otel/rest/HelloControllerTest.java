@@ -1,5 +1,8 @@
 package ch.dboeckli.example.otel.rest;
 
+import io.micrometer.tracing.otel.bridge.OtelBaggageManager;
+import io.micrometer.tracing.otel.bridge.OtelCurrentTraceContext;
+import io.micrometer.tracing.otel.bridge.OtelTracer;
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.baggage.propagation.W3CBaggagePropagator;
 import io.opentelemetry.api.common.AttributeKey;
@@ -47,6 +50,9 @@ public class HelloControllerTest {
     @TestConfiguration
     static class TracingTestConfig {
 
+        private static final List<String> TAG_FIELDS = List.of("testBaggage", "addedBaggageByFilter",
+                "addedBaggageByController", "addedBaggageByService");
+
         @Bean
         InMemorySpanExporter inMemorySpanExporter() {
             return InMemorySpanExporter.create();
@@ -69,13 +75,23 @@ public class HelloControllerTest {
                 .build();
         }
 
+        /*
+         * @Bean
+         *
+         * @Primary // <-- Micrometer Tracer mit deinem OTel verdrahten
+         * io.micrometer.tracing.Tracer micrometerTracer(OpenTelemetry openTelemetry) {
+         * io.opentelemetry.api.trace.Tracer otelTracer = openTelemetry.getTracer("test");
+         * return new io.micrometer.tracing.otel.bridge.OtelTracer(otelTracer, new
+         * io.micrometer.tracing.otel.bridge.OtelCurrentTraceContext(), event -> { }); }
+         */
+
         @Bean
-        @Primary // <-- Micrometer Tracer mit deinem OTel verdrahten
+        @Primary
         io.micrometer.tracing.Tracer micrometerTracer(OpenTelemetry openTelemetry) {
-            io.opentelemetry.api.trace.Tracer otelTracer = openTelemetry.getTracer("test");
-            return new io.micrometer.tracing.otel.bridge.OtelTracer(otelTracer,
-                    new io.micrometer.tracing.otel.bridge.OtelCurrentTraceContext(), event -> {
-                    });
+            return new OtelTracer(openTelemetry.getTracer("test"), new OtelCurrentTraceContext(), event -> {
+            }, new OtelBaggageManager(new OtelCurrentTraceContext(), TAG_FIELDS, // remote
+                                                                                 // fields
+                    TAG_FIELDS)); // tag fields
         }
 
         @Bean
@@ -143,9 +159,37 @@ public class HelloControllerTest {
         // Status OK
         assertThat(span.getStatus().getStatusCode()).isEqualTo(StatusCode.UNSET);
 
-        // Attribute
-        Attributes attibutes = span.getAttributes();
-        assertThat(span.getAttributes().get(AttributeKey.stringKey("method"))).isEqualTo("GET");
+        // Attributes
+        Attributes attributes = span.getAttributes();
+        log.info("Attributes: {}", attributes);
+        assertAll(() -> assertThat(attributes.get(AttributeKey.stringKey("method"))).isEqualTo("GET"),
+                () -> assertThat(attributes.get(AttributeKey.stringKey("status"))).isEqualTo("200"),
+                () -> assertThat(attributes.get(AttributeKey.stringKey("uri"))).isEqualTo("/hello"),
+                () -> assertThat(attributes.get(AttributeKey.stringKey("outcome"))).isEqualTo("SUCCESS"),
+                () -> assertThat(attributes.get(AttributeKey.stringKey("application")))
+                    .isEqualTo("spring-with-micrometer-tracing"),
+                () -> assertThat(attributes.get(AttributeKey.stringKey("env"))).isEqualTo("local"),
+
+                // Baggage-Felder
+                () -> assertThat(attributes.get(AttributeKey.stringKey("testBaggage"))).isEqualTo("hallo"),
+                () -> assertThat(attributes.get(AttributeKey.stringKey("addedBaggageByFilter")))
+                    .isEqualTo("echo from filter"),
+                () -> assertThat(attributes.get(AttributeKey.stringKey("addedBaggageByController")))
+                    .isEqualTo("echo from controller"));
+
+        SpanData serviceSpan = spans.getFirst();
+        Attributes serviceSpanAttributes = serviceSpan.getAttributes();
+        log.info("Service Span Attributes: {}", serviceSpanAttributes);
+
+        assertAll(
+                () -> assertThat(serviceSpanAttributes.get(AttributeKey.stringKey("addedBaggageByService")))
+                    .isEqualTo("echo from service"),
+                () -> assertThat(serviceSpanAttributes.get(AttributeKey.stringKey("processHello")))
+                    .isEqualTo("spanValue"));
+
+        // Parent-Beziehung verifizieren
+        assertThat(serviceSpan.getParentSpanContext().getSpanId()).isEqualTo(span.getSpanId());
+        assertThat(serviceSpan.getTraceId()).isEqualTo(span.getTraceId());
 
     }
 
