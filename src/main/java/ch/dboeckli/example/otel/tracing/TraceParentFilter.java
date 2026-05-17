@@ -37,6 +37,7 @@ public class TraceParentFilter extends OncePerRequestFilter {
         }
 
         String traceParent = request.getHeader("traceparent");
+
         if (traceParent == null || traceParent.isBlank()) {
             log.info("Traceparent was null or empty, setting traceparent header.");
 
@@ -50,6 +51,7 @@ public class TraceParentFilter extends OncePerRequestFilter {
         }
         else {
             log.info("Traceparent already present: {}", traceParent);
+            TraceparentValidator.parseTraceparent(traceParent);
         }
 
         filterChain.doFilter(request, response);

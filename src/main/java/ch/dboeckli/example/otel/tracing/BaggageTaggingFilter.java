@@ -12,7 +12,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -32,7 +34,10 @@ public class BaggageTaggingFilter extends OncePerRequestFilter {
         CurrentTraceContext currentTraceContext = tracer.currentTraceContext();
         Map<String, String> baggageMap = tracer.getAllBaggage(currentTraceContext.context());
 
-        log.info("### Hello from Baggage! {}", baggageMap);
+        Map<String, String> headers = Collections.list(request.getHeaderNames())
+            .stream()
+            .collect(Collectors.toMap(name -> name, request::getHeader));
+        log.info("### Hello from Baggage: {}. Headers: {}", baggageMap, headers);
 
         Span currentSpan = tracer.currentSpan();
 
