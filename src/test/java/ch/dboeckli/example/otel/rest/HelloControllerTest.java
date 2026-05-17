@@ -69,6 +69,22 @@ public class HelloControllerTest {
                 .build();
         }
 
+        @Bean
+        @Primary // <-- Micrometer Tracer mit deinem OTel verdrahten
+        io.micrometer.tracing.Tracer micrometerTracer(OpenTelemetry openTelemetry) {
+            io.opentelemetry.api.trace.Tracer otelTracer = openTelemetry.getTracer("test");
+            return new io.micrometer.tracing.otel.bridge.OtelTracer(otelTracer,
+                    new io.micrometer.tracing.otel.bridge.OtelCurrentTraceContext(), event -> {
+                    });
+        }
+
+        @Bean
+        @Primary
+        io.micrometer.tracing.propagation.Propagator micrometerPropagator(OpenTelemetry openTelemetry) {
+            return new io.micrometer.tracing.otel.bridge.OtelPropagator(openTelemetry.getPropagators(),
+                    openTelemetry.getTracer("test"));
+        }
+
     }
 
     @Autowired
@@ -121,8 +137,8 @@ public class HelloControllerTest {
         // Trace/Span IDs vorhanden
         assertThat(span.getTraceId()).isNotBlank();
         assertThat(span.getSpanId()).isNotBlank();
-        // assertThat(span.getTraceId()).isEqualTo(traceParentTraceId);
-        // assertThat(span.getParentSpanContext().getSpanId()).isEqualTo(traceParentSpanId);
+        assertThat(span.getTraceId()).isEqualTo(traceParentTraceId);
+        assertThat(span.getParentSpanContext().getSpanId()).isEqualTo(traceParentSpanId);
 
         // Status OK
         assertThat(span.getStatus().getStatusCode()).isEqualTo(StatusCode.UNSET);
