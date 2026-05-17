@@ -75,23 +75,15 @@ public class HelloControllerTest {
                 .build();
         }
 
-        /*
-         * @Bean
-         *
-         * @Primary // <-- Micrometer Tracer mit deinem OTel verdrahten
-         * io.micrometer.tracing.Tracer micrometerTracer(OpenTelemetry openTelemetry) {
-         * io.opentelemetry.api.trace.Tracer otelTracer = openTelemetry.getTracer("test");
-         * return new io.micrometer.tracing.otel.bridge.OtelTracer(otelTracer, new
-         * io.micrometer.tracing.otel.bridge.OtelCurrentTraceContext(), event -> { }); }
-         */
-
         @Bean
         @Primary
         io.micrometer.tracing.Tracer micrometerTracer(OpenTelemetry openTelemetry) {
             return new OtelTracer(openTelemetry.getTracer("test"), new OtelCurrentTraceContext(), event -> {
-            }, new OtelBaggageManager(new OtelCurrentTraceContext(), TAG_FIELDS, // remote
-                                                                                 // fields
-                    TAG_FIELDS)); // tag fields
+            }, new OtelBaggageManager(new OtelCurrentTraceContext(),
+                    // remote fields
+                    TAG_FIELDS,
+                    // tag fields
+                    TAG_FIELDS));
         }
 
         @Bean
@@ -122,20 +114,20 @@ public class HelloControllerTest {
         String traceParentTraceId = "4bf92f3577b34da6a3ce929d0e0e4736";
         String traceParentSpanId = "00f067aa0ba902b7";
 
-        HttpClient client = HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1).build();
+        try (HttpClient client = HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1).build()) {
+            HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost:" + port + "/hello"))
+                .GET()
+                .header("Accept", "application/json")
+                .header("traceparent", "00-" + traceParentTraceId + "-" + traceParentSpanId + "-01")
+                .header("baggage", "testBaggage=hallo")
+                .build();
 
-        HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create("http://localhost:" + port + "/hello"))
-            .GET()
-            .header("Accept", "application/json")
-            .header("traceparent", "00-" + traceParentTraceId + "-" + traceParentSpanId + "-01")
-            .header("baggage", "testBaggage=hallo")
-            .build();
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-
-        assertAll(() -> assertThat(response.statusCode()).isEqualTo(200),
-                () -> assertThat(response.body()).isEqualTo("{\"message\":\"hello\"}"));
+            assertAll(() -> assertThat(response.statusCode()).isEqualTo(200),
+                    () -> assertThat(response.body()).isEqualTo("{\"message\":\"hello\"}"));
+        }
 
         // Spans prüfen
         List<SpanData> spans = spanExporter.getFinishedSpanItems();
