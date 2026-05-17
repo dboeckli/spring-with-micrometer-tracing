@@ -1,5 +1,7 @@
 package ch.dboeckli.example.otel.tracing;
 
+import lombok.Getter;
+
 import java.util.regex.Pattern;
 
 public class TraceparentValidator {
@@ -27,8 +29,10 @@ public class TraceparentValidator {
         );
     }
 
+    @Getter
     public static class TraceparentInfo {
 
+        // Getters
         private final String version;
 
         private final String traceId;
@@ -42,23 +46,6 @@ public class TraceparentValidator {
             this.traceId = traceId;
             this.spanId = spanId;
             this.flags = flags;
-        }
-
-        // Getters
-        public String getVersion() {
-            return version;
-        }
-
-        public String getTraceId() {
-            return traceId;
-        }
-
-        public String getSpanId() {
-            return spanId;
-        }
-
-        public String getFlags() {
-            return flags;
         }
 
         public boolean isSampled() {

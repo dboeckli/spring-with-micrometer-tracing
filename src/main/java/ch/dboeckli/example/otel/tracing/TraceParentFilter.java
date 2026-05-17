@@ -47,12 +47,14 @@ public class TraceParentFilter extends OncePerRequestFilter {
             String traceParentValue = String.format("00-%s-%s-01", traceId, spanId);
             log.info("Setting traceparent header: {}", traceParentValue);
 
+            traceParent = traceParentValue;
+
             response.setHeader("traceparent", traceParentValue);
         }
         else {
             log.info("Traceparent already present: {}", traceParent);
-            TraceparentValidator.parseTraceparent(traceParent);
         }
+        TraceparentValidator.isValidTraceparent(traceParent);
 
         filterChain.doFilter(request, response);
     }
