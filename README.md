@@ -2,7 +2,7 @@
 
 ## Observability / Monitoring Setup
 
-Dieses Projekt bringt ein vollständiges Observability-Setup mit **OpenTelemetry** und mehreren Backends mit.
+Dieses Projekt bringt ein vollständiges Observability-Setup mit **OpenTelemetry** und mehreren Backends mit
 Siehe auch: https://last9.io/blog/opentelemetry-for-spring/
 
 ### Architekturüberblick

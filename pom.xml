@@ -125,11 +125,17 @@
     </dependency>
 
     <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+    </dependency>
+
+    <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
       <optional>true</optional>
     </dependency>
 
+    <!-- test dependencies -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-test</artifactId>
@@ -141,6 +147,7 @@
       <artifactId>micrometer-tracing-test</artifactId>
       <scope>test</scope>
     </dependency>
+
     <dependency>
       <groupId>io.micrometer</groupId>
       <artifactId>micrometer-tracing-integration-test</artifactId>
@@ -153,6 +160,14 @@
         <exclusion>
           <groupId>io.zipkin.brave</groupId>
           <artifactId>brave</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>io.micrometer</groupId>
+          <artifactId>micrometer-tracing-reporter-wavefront</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.wavefront</groupId>
+          <artifactId>wavefront-sdk-java</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -169,10 +184,10 @@
         <enabled>true</enabled>
       </snapshots>
       <!--
-            you need a personal access token for the dboeckli organization: generate access token on github: https://github.com/settings/apps
-            add gitHub server configuration to settings.xml file with username and password (add token there)
-            Configure maven settings of IntelliJ to use your personal settings.xml
-            -->
+                  you need a personal access token for the dboeckli organization: generate access token on github: https://github.com/settings/apps
+                  add gitHub server configuration to settings.xml file with username and password (add token there)
+                  Configure maven settings of IntelliJ to use your personal settings.xml
+                  -->
       <id>github</id>
       <url>https://maven.pkg.github.com/${project.organization.name}/${project.artifactId}</url>
     </repository>
@@ -444,9 +459,9 @@
           </execution>
 
           <!--
-                        This execution copies helm charts and puts them into the target directory 'helm-charts'. The helm charts are used to deploy the project.
-                        During the build some variables are resolved by maven filtering (e.g. the project version).
-                    -->
+                                  This execution copies helm charts and puts them into the target directory 'helm-charts'. The helm charts are used to deploy the project.
+                                  During the build some variables are resolved by maven filtering (e.g. the project version).
+                              -->
           <execution>
             <id>copy-and-filter-helm-charts-to-target</id>
             <goals>
