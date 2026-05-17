@@ -17,6 +17,7 @@ import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.data.SpanData;
 import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +37,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.List;
 
+import static io.opentelemetry.api.GlobalOpenTelemetry.resetForTest;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
@@ -98,6 +100,9 @@ public class HelloControllerTest {
     @Autowired
     InMemorySpanExporter spanExporter;
 
+    @Autowired
+    SdkTracerProvider sdkTracerProvider;
+
     @LocalServerPort
     int port;
 
@@ -107,6 +112,13 @@ public class HelloControllerTest {
     @BeforeEach
     void setUp() {
         spanExporter.reset();
+    }
+
+    @AfterEach
+    void tearDown() {
+        sdkTracerProvider.close();
+        spanExporter.reset();
+        resetForTest();
     }
 
     @Test
