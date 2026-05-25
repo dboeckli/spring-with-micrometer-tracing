@@ -1,7 +1,6 @@
 package ch.dboeckli.example.otel.rest;
 
 import ch.dboeckli.example.otel.service.HelloService;
-import io.micrometer.observation.annotation.Observed;
 import io.micrometer.tracing.BaggageInScope;
 import io.micrometer.tracing.CurrentTraceContext;
 import io.micrometer.tracing.Tracer;
@@ -28,7 +27,6 @@ public class HelloController {
         this.tracer = tracer;
     }
 
-    @Observed // is not really needed. it is observed by default
     @GetMapping("/hello")
     public ResponseEntity<String> hello() {
         CurrentTraceContext currentTraceContext = tracer.currentTraceContext();
