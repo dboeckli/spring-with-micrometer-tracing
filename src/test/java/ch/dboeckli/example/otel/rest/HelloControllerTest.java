@@ -1,5 +1,7 @@
 package ch.dboeckli.example.otel.rest;
 
+import io.micrometer.tracing.Baggage;
+import io.micrometer.tracing.BaggageInScope;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.otel.bridge.OtelBaggageManager;
 import io.micrometer.tracing.otel.bridge.OtelCurrentTraceContext;
@@ -82,12 +84,13 @@ public class HelloControllerTest {
         @Bean
         @Primary
         Tracer micrometerTracer(OpenTelemetry openTelemetry) {
-            return new OtelTracer(openTelemetry.getTracer("test"), new OtelCurrentTraceContext(), event -> {
-            }, new OtelBaggageManager(new OtelCurrentTraceContext(),
-                    // remote fields
-                    TAG_FIELDS,
-                    // tag fields
-                    TAG_FIELDS));
+            return new OtelTracer(openTelemetry.getTracer("test-tracer-scope"), new OtelCurrentTraceContext(),
+                    event -> {
+                    }, new OtelBaggageManager(new OtelCurrentTraceContext(),
+                            // remote fields
+                            TAG_FIELDS,
+                            // tag fields
+                            TAG_FIELDS));
         }
 
         @Bean
@@ -97,6 +100,9 @@ public class HelloControllerTest {
         }
 
     }
+
+    @Autowired
+    private Tracer tracer;
 
     @Autowired
     InMemorySpanExporter spanExporter;
@@ -144,25 +150,29 @@ public class HelloControllerTest {
         log.info("Spans: {}", spans);
 
         assertThat(spans).isNotEmpty();
-        assertThat(spans).hasSize(2);
+        assertThat(spans).hasSize(3);
         assertThat(spans).anyMatch(span -> span.getName().contains("hello"));
 
-        SpanData span = spans.get(1); // this is the parent span
+        SpanData parentSpan = spans.get(2); // this is the parent span
+        SpanData controllerSpan = spans.get(1);
+        SpanData serviceSpan = spans.getFirst();
 
         // Span Name
-        assertThat(span.getName()).isEqualTo("http get /hello");
+        assertThat(parentSpan.getName()).isEqualTo("http get /hello");
+        assertThat(controllerSpan.getName()).isEqualTo("hello-controller#hello");
+        assertThat(serviceSpan.getName()).isEqualTo("processHello");
 
         // Trace/Span IDs vorhanden
-        assertThat(span.getTraceId()).isNotBlank();
-        assertThat(span.getSpanId()).isNotBlank();
-        assertThat(span.getTraceId()).isEqualTo(traceParentTraceId);
-        assertThat(span.getParentSpanContext().getSpanId()).isEqualTo(traceParentSpanId);
+        assertThat(parentSpan.getTraceId()).isNotBlank();
+        assertThat(parentSpan.getSpanId()).isNotBlank();
+        assertThat(parentSpan.getTraceId()).isEqualTo(traceParentTraceId);
+        assertThat(parentSpan.getParentSpanContext().getSpanId()).isEqualTo(traceParentSpanId);
 
         // Status OK
-        assertThat(span.getStatus().getStatusCode()).isEqualTo(StatusCode.UNSET);
+        assertThat(parentSpan.getStatus().getStatusCode()).isEqualTo(StatusCode.UNSET);
 
         // Attributes
-        Attributes attributes = span.getAttributes();
+        Attributes attributes = parentSpan.getAttributes();
         log.info("Attributes: {}", attributes);
         assertAll(() -> assertThat(attributes.get(AttributeKey.stringKey("method"))).isEqualTo("GET"),
                 () -> assertThat(attributes.get(AttributeKey.stringKey("status"))).isEqualTo("200"),
@@ -175,11 +185,16 @@ public class HelloControllerTest {
                 // Baggage-Felder
                 () -> assertThat(attributes.get(AttributeKey.stringKey("testBaggage"))).isEqualTo("hallo"),
                 () -> assertThat(attributes.get(AttributeKey.stringKey("addedBaggageByFilter")))
-                    .isEqualTo("echo from filter"),
-                () -> assertThat(attributes.get(AttributeKey.stringKey("addedBaggageByController")))
-                    .isEqualTo("echo from controller"));
+                    .isEqualTo("echo from filter"));
 
-        SpanData serviceSpan = spans.getFirst();
+        Attributes controllerSpanAttributes = controllerSpan.getAttributes();
+        log.info("Controller Span Attributes: {}", controllerSpanAttributes);
+
+        assertAll(
+                () -> assertThat(controllerSpanAttributes.get(AttributeKey.stringKey("addedBaggageByController")))
+                    .isEqualTo("echo from controller"),
+                () -> assertThat(controllerSpanAttributes.get(AttributeKey.stringKey("method"))).isEqualTo("hello"));
+
         Attributes serviceSpanAttributes = serviceSpan.getAttributes();
         log.info("Service Span Attributes: {}", serviceSpanAttributes);
 
@@ -190,8 +205,11 @@ public class HelloControllerTest {
                     .isEqualTo("spanValue"));
 
         // Parent-Beziehung verifizieren
-        assertThat(serviceSpan.getParentSpanContext().getSpanId()).isEqualTo(span.getSpanId());
-        assertThat(serviceSpan.getTraceId()).isEqualTo(span.getTraceId());
+        assertThat(serviceSpan.getParentSpanContext().getSpanId()).isEqualTo(controllerSpan.getSpanId());
+        assertThat(serviceSpan.getTraceId()).isEqualTo(controllerSpan.getTraceId());
+
+        assertThat(controllerSpan.getParentSpanContext().getSpanId()).isEqualTo(parentSpan.getSpanId());
+        assertThat(controllerSpan.getTraceId()).isEqualTo(parentSpan.getTraceId());
 
     }
 
