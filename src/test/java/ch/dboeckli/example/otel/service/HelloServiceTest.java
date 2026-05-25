@@ -46,12 +46,7 @@ class HelloServiceTest {
 
         assertThat(processHelloSpan.getName()).isEqualTo("processHello");
         assertThat(processHelloSpan.getTags()).containsEntry("processHello", "spanValue");
-        assertThat(processHelloSpan.getEvents()).extracting("value").contains("service-started"); // passe
-                                                                                                  // an,
-                                                                                                  // was
-                                                                                                  // du
-                                                                                                  // wirklich
-                                                                                                  // loggst
+        assertThat(processHelloSpan.getEvents()).extracting("value").contains("service-started");
     }
 
 }

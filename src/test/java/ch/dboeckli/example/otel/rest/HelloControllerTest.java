@@ -1,8 +1,11 @@
 package ch.dboeckli.example.otel.rest;
 
+import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.otel.bridge.OtelBaggageManager;
 import io.micrometer.tracing.otel.bridge.OtelCurrentTraceContext;
+import io.micrometer.tracing.otel.bridge.OtelPropagator;
 import io.micrometer.tracing.otel.bridge.OtelTracer;
+import io.micrometer.tracing.propagation.Propagator;
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.baggage.propagation.W3CBaggagePropagator;
 import io.opentelemetry.api.common.AttributeKey;
@@ -23,7 +26,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
@@ -79,7 +81,7 @@ public class HelloControllerTest {
 
         @Bean
         @Primary
-        io.micrometer.tracing.Tracer micrometerTracer(OpenTelemetry openTelemetry) {
+        Tracer micrometerTracer(OpenTelemetry openTelemetry) {
             return new OtelTracer(openTelemetry.getTracer("test"), new OtelCurrentTraceContext(), event -> {
             }, new OtelBaggageManager(new OtelCurrentTraceContext(),
                     // remote fields
@@ -90,9 +92,8 @@ public class HelloControllerTest {
 
         @Bean
         @Primary
-        io.micrometer.tracing.propagation.Propagator micrometerPropagator(OpenTelemetry openTelemetry) {
-            return new io.micrometer.tracing.otel.bridge.OtelPropagator(openTelemetry.getPropagators(),
-                    openTelemetry.getTracer("test"));
+        Propagator micrometerPropagator(OpenTelemetry openTelemetry) {
+            return new OtelPropagator(openTelemetry.getPropagators(), openTelemetry.getTracer("test"));
         }
 
     }
@@ -105,9 +106,6 @@ public class HelloControllerTest {
 
     @LocalServerPort
     int port;
-
-    @Autowired
-    TestRestTemplate restTemplate;
 
     @BeforeEach
     void setUp() {
