@@ -19,7 +19,7 @@
 GET localhost:{{application-port}}/hello
 Accept: application/json
 # traceparent: {version}-{trace-id}-{span-id}-{trace-flags}
-traceparent: 00-{{traceId}}-{{spanId}}-01
+traceparent: 00-{{traceId}}-{{spanId}}-03
 baggage: testBaggage=hallo
 
 ### say hello
@@ -43,5 +43,5 @@ baggage: testBaggage=hallo
 GET localhost:{{application-port}}/hello2
 Accept: application/json
 # traceparent: {version}-{trace-id}-{span-id}-{trace-flags}
-traceparent: 00-{{traceId}}-{{spanId}}-01
+traceparent: 00-{{traceId}}-{{spanId}}-03
 baggage: testBaggage=hallo

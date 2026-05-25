@@ -1,8 +1,11 @@
 package ch.dboeckli.example.otel.rest;
 
+import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.otel.bridge.OtelBaggageManager;
 import io.micrometer.tracing.otel.bridge.OtelCurrentTraceContext;
+import io.micrometer.tracing.otel.bridge.OtelPropagator;
 import io.micrometer.tracing.otel.bridge.OtelTracer;
+import io.micrometer.tracing.propagation.Propagator;
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.baggage.propagation.W3CBaggagePropagator;
 import io.opentelemetry.api.common.AttributeKey;
@@ -23,7 +26,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
@@ -79,20 +81,20 @@ public class HelloControllerTest {
 
         @Bean
         @Primary
-        io.micrometer.tracing.Tracer micrometerTracer(OpenTelemetry openTelemetry) {
-            return new OtelTracer(openTelemetry.getTracer("test"), new OtelCurrentTraceContext(), event -> {
-            }, new OtelBaggageManager(new OtelCurrentTraceContext(),
-                    // remote fields
-                    TAG_FIELDS,
-                    // tag fields
-                    TAG_FIELDS));
+        Tracer micrometerTracer(OpenTelemetry openTelemetry) {
+            return new OtelTracer(openTelemetry.getTracer("test-tracer-scope"), new OtelCurrentTraceContext(),
+                    event -> {
+                    }, new OtelBaggageManager(new OtelCurrentTraceContext(),
+                            // remote fields
+                            TAG_FIELDS,
+                            // tag fields
+                            TAG_FIELDS));
         }
 
         @Bean
         @Primary
-        io.micrometer.tracing.propagation.Propagator micrometerPropagator(OpenTelemetry openTelemetry) {
-            return new io.micrometer.tracing.otel.bridge.OtelPropagator(openTelemetry.getPropagators(),
-                    openTelemetry.getTracer("test"));
+        Propagator micrometerPropagator(OpenTelemetry openTelemetry) {
+            return new OtelPropagator(openTelemetry.getPropagators(), openTelemetry.getTracer("test"));
         }
 
     }
@@ -105,9 +107,6 @@ public class HelloControllerTest {
 
     @LocalServerPort
     int port;
-
-    @Autowired
-    TestRestTemplate restTemplate;
 
     @BeforeEach
     void setUp() {
@@ -149,22 +148,24 @@ public class HelloControllerTest {
         assertThat(spans).hasSize(2);
         assertThat(spans).anyMatch(span -> span.getName().contains("hello"));
 
-        SpanData span = spans.get(1); // this is the parent span
+        SpanData parentSpan = spans.get(1); // this is the parent span
+        SpanData serviceSpan = spans.getFirst();
 
         // Span Name
-        assertThat(span.getName()).isEqualTo("http get /hello");
+        assertThat(parentSpan.getName()).isEqualTo("http get /hello");
+        assertThat(serviceSpan.getName()).isEqualTo("processHello");
 
         // Trace/Span IDs vorhanden
-        assertThat(span.getTraceId()).isNotBlank();
-        assertThat(span.getSpanId()).isNotBlank();
-        assertThat(span.getTraceId()).isEqualTo(traceParentTraceId);
-        assertThat(span.getParentSpanContext().getSpanId()).isEqualTo(traceParentSpanId);
+        assertThat(parentSpan.getTraceId()).isNotBlank();
+        assertThat(parentSpan.getSpanId()).isNotBlank();
+        assertThat(parentSpan.getTraceId()).isEqualTo(traceParentTraceId);
+        assertThat(parentSpan.getParentSpanContext().getSpanId()).isEqualTo(traceParentSpanId);
 
         // Status OK
-        assertThat(span.getStatus().getStatusCode()).isEqualTo(StatusCode.UNSET);
+        assertThat(parentSpan.getStatus().getStatusCode()).isEqualTo(StatusCode.UNSET);
 
         // Attributes
-        Attributes attributes = span.getAttributes();
+        Attributes attributes = parentSpan.getAttributes();
         log.info("Attributes: {}", attributes);
         assertAll(() -> assertThat(attributes.get(AttributeKey.stringKey("method"))).isEqualTo("GET"),
                 () -> assertThat(attributes.get(AttributeKey.stringKey("status"))).isEqualTo("200"),
@@ -179,9 +180,9 @@ public class HelloControllerTest {
                 () -> assertThat(attributes.get(AttributeKey.stringKey("addedBaggageByFilter")))
                     .isEqualTo("echo from filter"),
                 () -> assertThat(attributes.get(AttributeKey.stringKey("addedBaggageByController")))
-                    .isEqualTo("echo from controller"));
+                    .isEqualTo("echo from controller"),
+                () -> assertThat(attributes.get(AttributeKey.stringKey("method"))).isEqualTo("GET"));
 
-        SpanData serviceSpan = spans.getFirst();
         Attributes serviceSpanAttributes = serviceSpan.getAttributes();
         log.info("Service Span Attributes: {}", serviceSpanAttributes);
 
@@ -192,8 +193,8 @@ public class HelloControllerTest {
                     .isEqualTo("spanValue"));
 
         // Parent-Beziehung verifizieren
-        assertThat(serviceSpan.getParentSpanContext().getSpanId()).isEqualTo(span.getSpanId());
-        assertThat(serviceSpan.getTraceId()).isEqualTo(span.getTraceId());
+        assertThat(serviceSpan.getParentSpanContext().getSpanId()).isEqualTo(parentSpan.getSpanId());
+        assertThat(serviceSpan.getTraceId()).isEqualTo(parentSpan.getTraceId());
 
     }
 
