@@ -35,7 +35,7 @@ services:
     restart: unless-stopped
 
   prometheus:
-    image: prom/prometheus:v3.11.3
+    image: prom/prometheus:v3.12.0
     container_name: prometheus
     volumes:
       - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
@@ -60,7 +60,7 @@ services:
     restart: unless-stopped
 
   kibana:
-    image: docker.elastic.co/kibana/kibana:9.4.1
+    image: docker.elastic.co/kibana/kibana:9.4.2
     container_name: kibana
     ports:
       - "5601:5601"
