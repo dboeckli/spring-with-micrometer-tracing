@@ -60,7 +60,7 @@ services:
     restart: unless-stopped
 
   kibana:
-    image: docker.elastic.co/kibana/kibana:9.4.3
+    image: docker.elastic.co/kibana/kibana:9.4.4
     container_name: kibana
     ports:
       - "5601:5601"
