@@ -4,21 +4,7 @@
 # https://docs.github.com/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
 
 version: 2
-registries:
-  maven-dboeckli:
-    type: maven-repository
-    url: https://maven.pkg.github.com/dboeckli
-    username: dboeckli@gmail.com
-    password: ${{secrets.DBOECKLI_GITHUB_ACCESS_TOKEN}}
 updates:
-  - package-ecosystem: maven
-    directory: "/"
-    schedule:
-      interval: daily
-    registries:
-      - maven-dboeckli
-    ignore:
-      - dependency-name: org.apache.maven:*
       - dependency-name: org.springframework.boot:spring-boot-starter-parent
         update-types:
           - version-update:semver-major
