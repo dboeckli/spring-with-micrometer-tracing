@@ -64,7 +64,7 @@
             "enabled": false
         },
         {
-            "description": "Ignore Spring Boot major version updates",
+            "description": "Stay on Spring Boot 3.x - ignore major version updates",
             "matchDatasources": [
                 "maven"
             ],
