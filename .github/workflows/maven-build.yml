@@ -38,7 +38,7 @@ jobs:
           shfmt-version: 3.13.0
 
       - name: Set up java
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v6
         with:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: 'liberica'
@@ -147,7 +147,7 @@ jobs:
           shfmt-version: 3.13.0
 
       - name: Set up java
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v6
         with:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: 'liberica'
@@ -300,7 +300,7 @@ jobs:
           shfmt-version: 3.13.0
 
       - name: Set up java
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v6
         with:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: 'liberica'
