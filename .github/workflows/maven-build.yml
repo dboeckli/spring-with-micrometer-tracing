@@ -35,7 +35,7 @@ jobs:
 
       - uses: mfinelli/setup-shfmt@v4
         with:
-          shfmt-version: 3.13.0
+          shfmt-version: 3.14.1
 
       - name: Set up java
         uses: actions/setup-java@v6
@@ -144,7 +144,7 @@ jobs:
 
       - uses: mfinelli/setup-shfmt@v4
         with:
-          shfmt-version: 3.13.0
+          shfmt-version: 3.14.1
 
       - name: Set up java
         uses: actions/setup-java@v6
@@ -297,7 +297,7 @@ jobs:
 
       - uses: mfinelli/setup-shfmt@v4
         with:
-          shfmt-version: 3.13.0
+          shfmt-version: 3.14.1
 
       - name: Set up java
         uses: actions/setup-java@v6
