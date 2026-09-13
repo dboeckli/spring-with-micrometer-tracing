@@ -1,3 +1,6 @@
+nameOverride: "spring-with-micrometer-tracing"
+fullnameOverride: "spring-with-micrometer-tracing"
+
 global:
   timezone: Europe/Zurich
   timezonePath: /etc/localtime
