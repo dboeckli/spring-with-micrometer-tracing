@@ -1,20 +1,5 @@
 ### say hello
-< {%
-    function randomHex(length) {
-        let result = '';
-        const chars = '0123456789abcdef';
-        for (let i = 0; i < length; i++) {
-            result += chars[Math.floor(Math.random() * chars.length)];
-        }
-        return result;
-    }
-
-    const traceId = randomHex(32);
-    const spanId  = randomHex(16);
-
-    request.variables.set("traceId", traceId);
-    request.variables.set("spanId", spanId);
-%}
+< scripts/traceparent.js
 
 GET localhost:{{application-port}}/hello
 Accept: application/json
@@ -22,23 +7,8 @@ Accept: application/json
 traceparent: 00-{{traceId}}-{{spanId}}-03
 baggage: testBaggage=hallo
 
-### say hello
-< {%
-    function randomHex(length) {
-        let result = '';
-        const chars = '0123456789abcdef';
-        for (let i = 0; i < length; i++) {
-            result += chars[Math.floor(Math.random() * chars.length)];
-        }
-        return result;
-    }
-
-    const traceId = randomHex(32);
-    const spanId  = randomHex(16);
-
-    request.variables.set("traceId", traceId);
-    request.variables.set("spanId", spanId);
-%}
+### say hello2
+< scripts/traceparent.js
 
 GET localhost:{{application-port}}/hello2
 Accept: application/json
