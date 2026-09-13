@@ -1,5 +1,72 @@
 # Spring Boot 6 Open Telemetry Project
 
+## Sandbox (local dev environment)
+
+The sandbox is provisioned by the opencode-sandbox-kit and runs as a Docker container. It mounts this
+repo, starts the agent, and connects the IntelliJ MCP server.
+
+Allow the kit source (GitHub without cloning):
+
+```powershell
+sbx settings set kit.allowedSources --% "[\"docker.io/\",\"github.com/dboeckli/\"]"
+```
+
+Start a new sandbox:
+
+```powershell
+sbx run opencode `
+    --kit "git+https://github.com/dboeckli/opencode-sandbox-kit.git#dir=opencode-agent" `
+    --template docker/sandbox-templates:opencode-docker-0.5.0 `
+    --no-share-skills `
+    --static-mcp idea `
+    . `
+    "C:\development\maven-repo:ro"
+```
+
+Start the sandbox with Kubernetes support:
+
+```powershell
+sbx run opencode `
+    --kit "git+https://github.com/dboeckli/opencode-sandbox-kit.git#dir=opencode-agent" `
+    --template docker/sandbox-templates:opencode-docker-0.5.0 `
+    --no-share-skills `
+    --static-mcp idea `
+    . `
+    "C:\development\maven-repo:ro" `
+    "$env:USERPROFILE\.kube:ro"
+```
+
+Claude variant (Home):
+
+```powershell
+sbx run claude `
+    --kit "git+https://github.com/dboeckli/opencode-sandbox-kit.git#dir=opencode-agent" `
+    --template docker/sandbox-templates:claude-code-docker-0.5.0 `
+    --no-share-skills `
+    --static-mcp idea `
+    . `
+    "C:\development\maven-repo:ro"
+```
+
+Mammouth (template pin lives in the spec image):
+
+```powershell
+sbx run "git+https://github.com/dboeckli/opencode-sandbox-kit.git#dir=mammouth-agent" `
+    --no-share-skills `
+    --static-mcp idea `
+    . `
+    "C:\development\maven-repo:ro"
+```
+
+Apply the kit to an existing sandbox (restarts the sandbox, VM state is kept):
+
+```powershell
+sbx kit add <sandbox-name> "git+https://github.com/dboeckli/opencode-sandbox-kit.git#dir=opencode-agent"
+```
+
+> **Sandbox quirk:** Before any `./mvnw` in the sandbox run `export npm_config_bin_links=false`
+> (Spotless/prettier otherwise fails with EPERM on the mounted workspace).
+
 ## Observability / Monitoring Setup
 
 Dieses Projekt bringt ein vollständiges Observability-Setup mit **OpenTelemetry** und mehreren Backends mit
