@@ -1,4 +1,9 @@
-# Spring Boot 6 Open Telemetry Project
+# Spring Boot with Micrometer Tracing & OpenTelemetry
+
+Demo application based on **Spring Boot 3.5** (Java 25) that exports distributed **traces, metrics, and logs**
+with **Micrometer** and **OpenTelemetry** over **OTLP**. The backends are **Jaeger** and **Zipkin** (traces),
+**Prometheus** (metrics), and the **Elastic Stack** (Elastic APM, Elasticsearch, Kibana) for traces, metrics, and
+logs. A Docker Compose setup starts the entire observability stack.
 
 ## Sandbox (local dev environment)
 
@@ -69,165 +74,121 @@ sbx kit add <sandbox-name> "git+https://github.com/dboeckli/opencode-sandbox-kit
 
 ## Observability / Monitoring Setup
 
-Dieses Projekt bringt ein vollständiges Observability-Setup mit **OpenTelemetry** und mehreren Backends mit
-Siehe auch: https://last9.io/blog/opentelemetry-for-spring/
+This project ships a complete observability setup with **OpenTelemetry** and multiple backends.
+See also: [OpenTelemetry for Spring](https://last9.io/blog/opentelemetry-for-spring/).
 
-### Architekturüberblick
+### Architecture Overview
 
 #### Traces
 
-```
-┌───────────────────────────────────────────────────────────────────────────────────────────┐
-│                       Anwendung (spring-with-micrometer-tracing) with opentelemetry-spring-boot-starter │
-└──────────────────────────────────────────────┬────────────────────────────────────────────┘
-                                               │  Push OTLP (Traces)
-                                               v
-       ┌─────────────────────────────────────────────────────────────────────────────────┐
-       │                           OTEL COLLECTOR                                        │
-       │                           (otel-collector)                                      │
-       └───────────────┬──────────────────────────────┬────────────────────────┬─────────┘
-           Push Traces │                              │                        │
-                       │                              │                        │
-                       v                              v                        v
-         ┌─────────────────────────┐     ┌─────────────────────────┐   ┌──────────────────────────┐
-         │         JAEGER          │     │         ZIPKIN          │   │     ELASTIC APM SERVER   │
-         │       jaeger:4317       │     │       zipkin:9411       │   │      apm-server:8200     │
-         └─────────────────────────┘     └─────────────────────────┘   └───────────────┬──────────┘
-                                                                                       │
-                                                                                       │ Push Traces
-                                                                                       v
-                                                                           ┌──────────────────────────┐
-                                                                           │       ELASTICSEARCH      │
-                                                                           │      localhost:9200      │
-                                                                           └───────────────┬──────────┘
-                                                                                           │
-                                                                                           v
-                                                                                   ┌───────────────────┐
-                                                                                   │      KIBANA       │
-                                                                                   │   localhost:5601  │
-                                                                                   └───────────────────┘
+Notes:
 
-Hinweise:
-- Traces gehen an **Jaeger**, **Zipkin** und **Elastic APM**
-- Elastic APM schreibt Traces **in Elasticsearch**
-- Kibana visualisiert (sofern aktiviert) Traces aus Elasticsearch
+- Traces are sent to **Jaeger**, **Zipkin**, and **Elastic APM**
+- Elastic APM writes traces **to Elasticsearch**
+- Kibana visualizes traces from Elasticsearch (if enabled)
 
+```mermaid
+flowchart TD
+    APP["Application (spring-with-micrometer-tracing)<br/>opentelemetry-spring-boot-starter"]
+    COLLECTOR["OTEL COLLECTOR<br/>(otel-collector)"]
+    JAEGER["JAEGER<br/>jaeger:4317"]
+    ZIPKIN["ZIPKIN<br/>zipkin:9411"]
+    APM["ELASTIC APM SERVER<br/>apm-server:8200"]
+    ES["ELASTICSEARCH<br/>localhost:9200"]
+    KIBANA["KIBANA<br/>localhost:5601"]
 
+    APP -->|"Push OTLP (Traces)"| COLLECTOR
+    COLLECTOR -->|"Push Traces"| JAEGER
+    COLLECTOR -->|"Push Traces"| ZIPKIN
+    COLLECTOR -->|"Push Traces"| APM
+    APM -->|"Push Traces"| ES
+    ES -->|"visualizes"| KIBANA
 ```
 
 #### Metrics
 
-```
-┌───────────────────────────────────────────────────────────────────────────────────────────┐
-│                       Anwendung (spring-with-micrometer-tracing) with opentelemetry-spring-boot-starter │
-└────────────────┬──────────────────────────────────────────────────────────────────────────┘
-                 │  Push OTLP (Metrics)
-                 v
-       ┌─────────────────────────────────────────────────────────────────────┐
-       │                          OTEL COLLECTOR                             │
-       │                          (otel-collector)                           │
-       │             Metrics Exporter: otel-collector:8889                   │
-       └───────────────────────────────────────────────┬─────────────────────┘
-   Pull OTLP (Metrics) ^                               │  Push OTLP (Metrics)
-                       │                               │
-                       │                               v
-         ┌──────────────────────────┐        ┌──────────────────────────┐
-         │       PROMETHEUS         │        │     ELASTIC APM SERVER   │
-         │     localhost:9090       │        │      apm-server:8200     │
-         │   scrapt 8889 (Collector)│        └───────────────┬──────────┘
-         └──────────────────────────┘                        │
-                                                             │ Push Metrics
-                                                             v
-                                                ┌──────────────────────────┐
-                                                │      ELASTICSEARCH       │
-                                                │     localhost:9200       │
-                                                └───────────────┬──────────┘
-                                                                │
-                                                                v
-                                                        ┌───────────────────┐
-                                                        │      KIBANA       │
-                                                        │   localhost:5601  │
-                                                        └───────────────────┘
+Notes:
 
-Hinweise:
-- Metriken gehen an Prometheus **und** an Elastic APM
-- Elastic APM schreibt nach Elasticsearch.
-- Prometheus scrapt (pulled) diese Daten von dem Collector.
-- Kibana visualisiert Daten aus Elasticsearch.
+- Metrics are sent to Prometheus **and** Elastic APM
+- Elastic APM writes to Elasticsearch.
+- Prometheus scrapes (pulls) this data from the collector.
+- Kibana visualizes data from Elasticsearch.
+
+```mermaid
+flowchart TD
+    APP["Application (spring-with-micrometer-tracing)<br/>opentelemetry-spring-boot-starter"]
+    COLLECTOR["OTEL COLLECTOR<br/>(otel-collector)<br/>Metrics Exporter: otel-collector:8889"]
+    PROM["PROMETHEUS<br/>localhost:9090<br/>scrapes 8889 (collector)"]
+    APM["ELASTIC APM SERVER<br/>apm-server:8200"]
+    ES["ELASTICSEARCH<br/>localhost:9200"]
+    KIBANA["KIBANA<br/>localhost:5601"]
+
+    APP -->|"Push OTLP (Metrics)"| COLLECTOR
+    COLLECTOR -->|"Push OTLP (Metrics)"| APM
+    PROM -->|"Pull OTLP (Metrics)"| COLLECTOR
+    APM -->|"Push Metrics"| ES
+    ES -->|"visualizes"| KIBANA
 ```
 
 #### Logs
 
-```
-┌───────────────────────────────────────────────────────────────────────────────────────────┐
-│                  Anwendung (spring-with-micrometer-tracing-starter) opentelemetry-spring-boot-starter   │
-└───────────────┬───────────────────────────────────────────────────────────────────────────┘
-                │  Push OTLP (Logs)
-                v
-      ┌─────────────────────────────────────────────────────┐
-      │                   OTEL COLLECTOR                    │
-      │                   (otel-collector)                  │
-      └──────────────────────────────┬──────────────────────┘
-                                     │  Push OTLP (Logs)
-                                     v
-                        ┌──────────────────────────┐
-                        │      ELASTICSEARCH       │
-                        │     localhost:9200       │
-                        └───────────────┬──────────┘
-                                        │
-                                        v
-                                ┌───────────────────┐
-                                │      KIBANA       │
-                                │   localhost:5601  │
-                                └───────────────────┘
+```mermaid
+flowchart TD
+    APP["Application (spring-with-micrometer-tracing)<br/>opentelemetry-spring-boot-starter"]
+    COLLECTOR["OTEL COLLECTOR<br/>(otel-collector)"]
+    ES["ELASTICSEARCH<br/>localhost:9200"]
+    KIBANA["KIBANA<br/>localhost:5601"]
 
-
+    APP -->|"Push OTLP (Logs)"| COLLECTOR
+    COLLECTOR -->|"Push OTLP (Logs)"| ES
+    ES -->|"visualizes"| KIBANA
 ```
 
-**App → Otel Collector**
-Die Spring Boot Anwendung exportiert **Traces, Metrics und Logs** per **OTLP HTTP** an den Otel Collector:
+**App → OTel Collector**
 
-- OTLP HTTP Endpoint der App: `http://localhost:4318` (aus Sicht des Hosts).
-- Per Port-Mapping geht das an den Collector-Container (`otel-collector:4318`).
-- **Otel Collector → Backends**
+The Spring Boot application exports **traces, metrics, and logs** over **OTLP HTTP** to the OTel Collector:
 
-  Der Collector verteilt die Telemetriedaten wie folgt:
+- OTLP HTTP endpoint of the app: `http://localhost:4318` (as seen from the host).
+- Port mapping forwards this to the collector container (`otel-collector:4318`).
 
-  - **Traces**
-    - → Jaeger (`jaeger:4317`)
-    - → Zipkin (`zipkin:9411`)
-    - → Elastic APM Server (`apm-server:8200`, OTLP HTTP)
-  - **Metrics**
-    - → Prometheus-Exporter (`otel-collector:8889`)  
-      Prometheus scrapt diesen Endpoint.
-    - → Elastic APM Server (`apm-server:8200`, OTLP HTTP)
-  - **Logs**
-    - → Elasticsearch (`elasticsearch:9200`), Darstellung über Kibana.
-- **Prometheus → Otel Collector**
+**OTel Collector → Backends**
 
-  Prometheus ist ausschließlich mit dem **Collector** verbunden:
+The collector distributes the telemetry data as follows:
 
-  - scrape target: `otel-collector:8889`
-  - die Anwendung selbst wird **nicht** direkt über `/actuator/prometheus` gescrapt.
+- **Traces**
+  - → Jaeger (`jaeger:4317`)
+  - → Zipkin (`zipkin:9411`)
+  - → Elastic APM Server (`apm-server:8200`, OTLP HTTP)
+- **Metrics**
+  - → Prometheus exporter (`otel-collector:8889`), which Prometheus scrapes.
+  - → Elastic APM Server (`apm-server:8200`, OTLP HTTP)
+- **Logs**
+  - → Elasticsearch (`elasticsearch:9200`), visualized via Kibana.
 
-### Dienste und UIs
+**Prometheus → OTel Collector**
 
-folgende Ui's stehen zur Verfügung:
+Prometheus connects exclusively to the **collector**:
 
-- **Prometheus** – Metriken
+- scrape target: `otel-collector:8889`
+- the application itself is **not** scraped directly via `/actuator/prometheus`.
+
+### Services and UIs
+
+The following UIs are available:
+
+- **Prometheus** – metrics
   - URL: `http://localhost:9090`
-  - Unter `Status → Targets` sollte `otel-collector` als „UP“ erscheinen.
-- **Jaeger** – Traces
+  - Under `Status → Targets`, `otel-collector` should appear as "UP".
+- **Jaeger** – traces
   - URL: `http://localhost:16686`
-  - Suche nach Services wie `spring-with-micrometer-tracing`.
-- **Zipkin** – Traces (Alternative UI)
+  - Search for services such as `spring-with-micrometer-tracing`.
+- **Zipkin** – traces (alternative UI)
   - URL: `http://localhost:9411`
-- **Elasticsearch + Kibana** – Logs und (abhängig von APM-Konfiguration) Metriken/Traces
+- **Elasticsearch + Kibana** – logs and (depending on APM configuration) metrics/traces
   - Elasticsearch: `http://localhost:9200`
-  - Kibana: `http://localhost:5601`:
-    Go to: Stack Management -> Data views -> APM
-    search for Index pattern:
-    traces-apm*,apm-*,traces-*.otel-*,logs-apm*,apm-*,logs-*.otel-*,metrics-apm*,apm-*,metrics-*.otel-*
-- **Elastic APM Server** – OTLP-Endpunkt für APM
-  - OTLP HTTP: `http://localhost:8200` (per Port-Mapping auf `apm-server:8200`)
+  - Kibana: `http://localhost:5601`
+    - Stack Management → Data views → APM
+    - Search index pattern: `traces-apm*,apm-*,traces-*.otel-*,logs-apm*,apm-*,logs-*.otel-*,metrics-apm*,apm-*,metrics-*.otel-*`
+- **Elastic APM Server** – OTLP endpoint for APM
+  - OTLP HTTP: `http://localhost:8200` (mapped to `apm-server:8200` via port mapping)
 

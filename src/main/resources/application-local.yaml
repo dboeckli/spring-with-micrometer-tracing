@@ -107,3 +107,7 @@ management:
       endpoint: http://localhost:4318/v1/logs     # Collector
       export:
         enabled: true  # Logs to Collector
+
+logging:
+  level:
+    org.springframework.web.filter.CommonsRequestLoggingFilter: DEBUG
