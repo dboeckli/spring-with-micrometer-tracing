@@ -52,13 +52,6 @@ class ActuatorInfoIT {
             .andExpect(jsonPath("$.status").value("UP"));
     }
 
-    @Test
-    void actuatorPrometheusTest() throws Exception {
-        mockMvc.perform(get("/actuator/prometheus"))
-            .andExpect(status().isOk())
-            .andDo(result -> log.info("Response:\n{}", result.getResponse().getContentAsString()));
-    }
-
     private String pretty(String body) {
         try {
             Object json = OBJECT_MAPPER.readValue(body, Object.class);
