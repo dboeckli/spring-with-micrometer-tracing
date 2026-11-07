@@ -1,7 +1,6 @@
 package ch.dboeckli.example.otel.rest;
 
 import ch.dboeckli.example.otel.service.HelloService;
-import io.micrometer.tracing.BaggageInScope;
 import io.micrometer.tracing.CurrentTraceContext;
 import io.micrometer.tracing.Tracer;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +15,7 @@ import java.util.Map;
 @Slf4j
 public class HelloController {
 
-    protected final static String HELLO_MESSAGE = "Say Hello...";
+    protected static final String HELLO_MESSAGE = "Say Hello...";
 
     private final HelloService helloService;
 
@@ -34,7 +33,7 @@ public class HelloController {
 
         log.info("{} with Baggage: {} ", HELLO_MESSAGE, baggageMap);
 
-        try (BaggageInScope _ = tracer.createBaggageInScope("addedBaggageByController", "echo from controller")) {
+        try (var _ = tracer.createBaggageInScope("addedBaggageByController", "echo from controller")) {
             helloService.processHello();
         }
 

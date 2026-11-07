@@ -1,7 +1,6 @@
 package ch.dboeckli.example.otel.service;
 
 import io.micrometer.tracing.Span;
-import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.test.simple.SimpleSpan;
 import io.micrometer.tracing.test.simple.SimpleTracer;
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +27,7 @@ class HelloServiceTest {
     @Test
     void shouldCreateSpan() {
         Span parentSpan = tracer.nextSpan().name("test-parent").start();
-        try (Tracer.SpanInScope ws = tracer.withSpan(parentSpan)) {
+        try (var _ = tracer.withSpan(parentSpan)) {
             helloService.processHello();
         }
         finally {

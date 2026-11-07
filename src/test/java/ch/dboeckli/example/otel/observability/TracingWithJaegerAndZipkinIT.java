@@ -119,7 +119,7 @@ public class TracingWithJaegerAndZipkinIT {
             Object json = OBJECT_MAPPER.readValue(body, Object.class);
             return OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(json);
         }
-        catch (Exception e) {
+        catch (Exception _) {
             return body;
         }
     }

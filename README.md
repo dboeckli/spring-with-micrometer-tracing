@@ -5,27 +5,6 @@ with **Micrometer** and **OpenTelemetry** over **OTLP**. The backends are **Jaeg
 **Prometheus** (metrics), and the **Elastic Stack** (Elastic APM, Elasticsearch, Kibana) for traces, metrics, and
 logs. A Docker Compose setup starts the entire observability stack.
 
-## Sandbox (local dev environment)
-
-The sandbox is provisioned by the opencode-sandbox-kit and runs as a Docker container. It mounts this
-repo, starts the agent, and connects the IntelliJ MCP server.
-
-Allow the kit source (GitHub without cloning):
-
-```powershell
-sbx settings set kit.allowedSources --% "[\"docker.io/\",\"github.com/dboeckli/\"]"
-```
-
-Start a new sandbox:
-
-```powershell
-sbx run docker.io/domboeckli/sbx-opencode:latest `
-    --skills=off `
-    --static-mcp idea,k8s,docker `
-    . `
-    "C:\development\maven-repo:ro"
-```
-
 ## Observability / Monitoring Setup
 
 This project ships a complete observability setup with **OpenTelemetry** and multiple backends.
@@ -145,4 +124,25 @@ The following UIs are available:
     - Search index pattern: `traces-apm*,apm-*,traces-*.otel-*,logs-apm*,apm-*,logs-*.otel-*,metrics-apm*,apm-*,metrics-*.otel-*`
 - **Elastic APM Server** – OTLP endpoint for APM
   - OTLP HTTP: `http://localhost:8200` (mapped to `apm-server:8200` via port mapping)
+
+## Sandbox (local dev environment)
+
+The sandbox is provisioned by the opencode-sandbox-kit and runs as a Docker container. It mounts this
+repo, starts the agent, and connects the IntelliJ MCP server.
+
+Allow the kit source (GitHub without cloning):
+
+```powershell
+sbx settings set kit.allowedSources --% "[\"docker.io/\",\"github.com/dboeckli/\"]"
+```
+
+Start a new sandbox:
+
+```powershell
+sbx run docker.io/domboeckli/sbx-opencode:latest `
+    --skills=off `
+    --static-mcp idea,k8s,docker `
+    . `
+    "C:\development\maven-repo:ro"
+```
 

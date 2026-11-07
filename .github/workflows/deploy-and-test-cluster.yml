@@ -38,12 +38,19 @@ jobs:
 
     steps:
       - name: Show Version
+        env:
+          APPLICATION_NAME: ${{ inputs.application-name }}
+          APP_VERSION: ${{ inputs.version }}
+          HELM_CHART_VERSION: ${{ inputs.helm-chart-version }}
+          NAMESPACE: ${{ inputs.namespace }}
+          DEPLOYED_BY_WORKFLOW: ${{ inputs.deployed-by-workflow }}
+          DEPLOYED_BY_BUILD: ${{ inputs.deployed-by-build }}
         run: |
-          echo "Deploying Application ${{ inputs.application-name }} with Version: ${{ inputs.version }}, Helm chart version: ${{ inputs.helm-chart-version }}, to namespace ${{ inputs.namespace }}"
-          echo "Deployment triggered by workflow ${{ inputs.deployed-by-workflow }}. Run number: ${{ inputs.deployed-by-build }}"
+          echo "Deploying Application ${APPLICATION_NAME} with Version: ${APP_VERSION}, Helm chart version: ${HELM_CHART_VERSION}, to namespace ${NAMESPACE}"
+          echo "Deployment triggered by workflow ${DEPLOYED_BY_WORKFLOW}. Run number: ${DEPLOYED_BY_BUILD}"
 
       - name: Check out the repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
 
       - name: Create k8s Kind Cluster
         uses: helm/kind-action@v1.15.2
@@ -79,6 +86,9 @@ jobs:
         env:
           NAMESPACE: ${{ inputs.namespace }}
           APPLICATION_NAME: ${{ inputs.application-name }}
+          HELM_CHART_VERSION: ${{ inputs.helm-chart-version }}
+          DEPLOYED_BY_WORKFLOW: ${{ inputs.deployed-by-workflow }}
+          DEPLOYED_BY_BUILD: ${{ inputs.deployed-by-build }}
         run: |
           if ! kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=$APPLICATION_NAME -n $NAMESPACE --timeout=180s; then
             POD_NAME=$(kubectl get pods -l app.kubernetes.io/name=$APPLICATION_NAME -o jsonpath="{.items[0].metadata.name}" -n $NAMESPACE)
@@ -87,9 +97,9 @@ jobs:
             kubectl describe pod $POD_NAME -n $NAMESPACE
             exit 1
           fi
-          BUILD_LINK="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ inputs.deployed-by-build }}"
-          echo "::notice:: ### Helm Deployed Version: ${{ inputs.helm-chart-version }}"
-          echo "::notice:: ### Deployment triggered by workflow ${{ inputs.deployed-by-workflow }}. Run number: ${{ inputs.deployed-by-build }}: $BUILD_LINK"
+          BUILD_LINK="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${DEPLOYED_BY_BUILD}"
+          echo "::notice:: ### Helm Deployed Version: ${HELM_CHART_VERSION}"
+          echo "::notice:: ### Deployment triggered by workflow ${DEPLOYED_BY_WORKFLOW}. Run number: ${DEPLOYED_BY_BUILD}: $BUILD_LINK"
 
       - name: Test Application
         env:

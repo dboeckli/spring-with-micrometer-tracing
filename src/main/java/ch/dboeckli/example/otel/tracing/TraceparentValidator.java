@@ -6,6 +6,9 @@ import java.util.regex.Pattern;
 
 public class TraceparentValidator {
 
+    private TraceparentValidator() {
+    }
+
     private static final Pattern TRACEPARENT_PATTERN = Pattern.compile("^00-[0-9a-f]{32}-[0-9a-f]{16}-[0-9a-f]{2}$");
 
     public static boolean isValidTraceparent(String traceparent) {
