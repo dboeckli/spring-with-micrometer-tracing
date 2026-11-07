@@ -72,20 +72,6 @@
             "enabled": false
         },
         {
-            "description": "Stay on Spring Boot 3.x - ignore major version updates",
-            "matchDatasources": [
-                "maven"
-            ],
-            "matchPackageNames": [
-                "org.springframework.boot:spring-boot-starter-parent",
-                "org.springframework.boot:*"
-            ],
-            "matchUpdateTypes": [
-                "major"
-            ],
-            "enabled": false
-        },
-        {
             "matchCategories": [
                 "docker"
             ],

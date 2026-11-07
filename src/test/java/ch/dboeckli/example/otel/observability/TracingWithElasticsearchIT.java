@@ -1,13 +1,15 @@
 package ch.dboeckli.example.otel.observability;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.actuate.observability.AutoConfigureObservability;
+import org.springframework.boot.micrometer.metrics.test.autoconfigure.AutoConfigureMetrics;
+import org.springframework.boot.micrometer.tracing.test.autoconfigure.AutoConfigureTracing;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.boot.resttestclient.TestRestTemplate;
+import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.*;
 import org.springframework.test.context.ActiveProfiles;
@@ -20,9 +22,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         properties = { "spring.docker.compose.skip.in-tests=false" })
+@AutoConfigureTestRestTemplate
 @ActiveProfiles("local")
 @Slf4j
-@AutoConfigureObservability
+@AutoConfigureMetrics
+@AutoConfigureTracing
 class TracingWithElasticsearchIT {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();

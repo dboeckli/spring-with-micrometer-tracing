@@ -67,6 +67,9 @@ management:
   # --- OpenTelemetry / OTLP ---
   tracing:
     enabled: true   # enable tracing with OpenTelemetry
+    export:
+      otlp:
+        enabled: true  # Traces to Collector
     propagation:
       type: w3c
       produce: w3c
@@ -94,19 +97,26 @@ management:
     sampling:
       probability: 1.0
 
-  otlp:
+  logging:
+    export:
+      otlp:
+        enabled: true  # Logs to Collector
+
+  opentelemetry:
     tracing:
-      endpoint: http://localhost:4318/v1/traces  # Collector
       export:
-        enabled: true  # Traces to Collector
+        otlp:
+          endpoint: http://localhost:4318/v1/traces  # Collector
+    logging:
+      export:
+        otlp:
+          endpoint: http://localhost:4318/v1/logs  # Collector
+
+  otlp:
     metrics:
       export:
         url: http://localhost:4318/v1/metrics     # Collector
         enabled: true  # Metrics to Collector
-    logging:
-      endpoint: http://localhost:4318/v1/logs     # Collector
-      export:
-        enabled: true  # Logs to Collector
 
 appconfig:
   request-logging:

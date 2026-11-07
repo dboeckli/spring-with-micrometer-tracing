@@ -1,6 +1,6 @@
 # Spring Boot with Micrometer Tracing & OpenTelemetry
 
-Demo application based on **Spring Boot 3.5** (Java 25) that exports distributed **traces, metrics, and logs**
+Demo application based on **Spring Boot 4.1** (Java 25) that exports distributed **traces, metrics, and logs**
 with **Micrometer** and **OpenTelemetry** over **OTLP**. The backends are **Jaeger** and **Zipkin** (traces),
 **Prometheus** (metrics), and the **Elastic Stack** (Elastic APM, Elasticsearch, Kibana) for traces, metrics, and
 logs. A Docker Compose setup starts the entire observability stack.

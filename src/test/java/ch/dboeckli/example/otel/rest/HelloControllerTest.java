@@ -44,7 +44,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-        properties = { "management.otlp.tracing.export.enabled=false", "management.otlp.logging.export.enabled=false",
+        properties = { "management.tracing.export.otlp.enabled=false", "management.logging.export.otlp.enabled=false",
                 "management.otlp.metrics.export.enabled=false" })
 @ActiveProfiles("local")
 @Import(HelloControllerTest.TracingTestConfig.class)
