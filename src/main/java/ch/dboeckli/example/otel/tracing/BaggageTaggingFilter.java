@@ -41,8 +41,8 @@ public class BaggageTaggingFilter extends OncePerRequestFilter {
 
         Span currentSpan = tracer.currentSpan();
 
-        try (Tracer.SpanInScope _ = tracer.withSpan(currentSpan);
-                BaggageInScope _ = tracer.createBaggageInScope("addedBaggageByFilter", "echo from filter")) {
+        try (var _ = tracer.withSpan(currentSpan);
+                var _ = tracer.createBaggageInScope("addedBaggageByFilter", "echo from filter")) {
 
             addCurrentBaggageFromRequest(currentSpan, baggageMap);
 

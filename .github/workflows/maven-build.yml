@@ -31,14 +31,14 @@ jobs:
       ORGANIZATION: ${{ steps.set_version.outputs.ORGANIZATION }}
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
 
-      - uses: mfinelli/setup-shfmt@v4
+      - uses: mfinelli/setup-shfmt@v4.0.1
         with:
           shfmt-version: 3.14.1
 
       - name: Set up java
-        uses: actions/setup-java@v6
+        uses: actions/setup-java@v6.1.0
         with:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: 'liberica'
@@ -88,7 +88,6 @@ jobs:
         id: show_variables
         shell: bash
         env:
-          ALLMYSECRETS: ${{ toJSON(secrets) }}
           ALLMYVARS: ${{ toJSON(vars) }}
           ALLMYOUTPUT: ${{ toJSON(steps.set_version.outputs) }}
           BRANCH_MVN_VERSION: ${{ steps.set_version.outputs.BRANCH_MVN_VERSION }}
@@ -99,7 +98,6 @@ jobs:
           ORGANIZATION: ${{ steps.set_version.outputs.ORGANIZATION }}
 
         run: |
-          echo "### ALLMYSECRETS: $ALLMYSECRETS"
           echo "### ALLMYVARS: $ALLMYVARS"
           echo "### ALLMYOUTPUT: $ALLMYOUTPUT"
           
@@ -140,14 +138,14 @@ jobs:
       actions: read
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
 
-      - uses: mfinelli/setup-shfmt@v4
+      - uses: mfinelli/setup-shfmt@v4.0.1
         with:
           shfmt-version: 3.14.1
 
       - name: Set up java
-        uses: actions/setup-java@v6
+        uses: actions/setup-java@v6.1.0
         with:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: 'liberica'
@@ -162,11 +160,9 @@ jobs:
         id: show_build_variables
         shell: bash
         env:
-          ALLMYSECRETS: ${{ toJSON(secrets) }}
           ALLMYVARS: ${{ toJSON(vars) }}
           ALLMYOUTPUT: ${{ toJSON(needs.setup.outputs) }}
         run: |
-          echo "### ALLMYSECRETS: $ALLMYSECRETS"
           echo "### ALLMYVARS: $ALLMYVARS"
           echo "### ALLMYOUTPUT: $ALLMYOUTPUT"
 
@@ -252,16 +248,16 @@ jobs:
       actions: read
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 0
 
-      - uses: mfinelli/setup-shfmt@v4
+      - uses: mfinelli/setup-shfmt@v4.0.1
         with:
           shfmt-version: 3.14.1
 
       - name: Set up java
-        uses: actions/setup-java@v6
+        uses: actions/setup-java@v6.1.0
         with:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: 'liberica'
@@ -303,7 +299,7 @@ jobs:
           mvn -B -e verify -Dskip.start.stop.springboot=true -Dskip.docker.build=true -Dskip.docker.publish=true -s $GITHUB_WORKSPACE/settings.xml	
 
       - name: Publish Test Results
-        uses: EnricoMi/publish-unit-test-result-action@v2
+        uses: EnricoMi/publish-unit-test-result-action@v2.25.0
         if: always()
         with:
           files: |

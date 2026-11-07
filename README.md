@@ -5,73 +5,6 @@ with **Micrometer** and **OpenTelemetry** over **OTLP**. The backends are **Jaeg
 **Prometheus** (metrics), and the **Elastic Stack** (Elastic APM, Elasticsearch, Kibana) for traces, metrics, and
 logs. A Docker Compose setup starts the entire observability stack.
 
-## Sandbox (local dev environment)
-
-The sandbox is provisioned by the opencode-sandbox-kit and runs as a Docker container. It mounts this
-repo, starts the agent, and connects the IntelliJ MCP server.
-
-Allow the kit source (GitHub without cloning):
-
-```powershell
-sbx settings set kit.allowedSources --% "[\"docker.io/\",\"github.com/dboeckli/\"]"
-```
-
-Start a new sandbox:
-
-```powershell
-sbx run opencode `
-    --kit "git+https://github.com/dboeckli/opencode-sandbox-kit.git#dir=opencode-agent" `
-    --template docker/sandbox-templates:opencode-docker-0.5.0 `
-    --no-share-skills `
-    --static-mcp idea `
-    . `
-    "C:\development\maven-repo:ro"
-```
-
-Start the sandbox with Kubernetes support:
-
-```powershell
-sbx run opencode `
-    --kit "git+https://github.com/dboeckli/opencode-sandbox-kit.git#dir=opencode-agent" `
-    --template docker/sandbox-templates:opencode-docker-0.5.0 `
-    --no-share-skills `
-    --static-mcp idea `
-    . `
-    "C:\development\maven-repo:ro" `
-    "$env:USERPROFILE\.kube:ro"
-```
-
-Claude variant (Home):
-
-```powershell
-sbx run claude `
-    --kit "git+https://github.com/dboeckli/opencode-sandbox-kit.git#dir=opencode-agent" `
-    --template docker/sandbox-templates:claude-code-docker-0.5.0 `
-    --no-share-skills `
-    --static-mcp idea `
-    . `
-    "C:\development\maven-repo:ro"
-```
-
-Mammouth (template pin lives in the spec image):
-
-```powershell
-sbx run "git+https://github.com/dboeckli/opencode-sandbox-kit.git#dir=mammouth-agent" `
-    --no-share-skills `
-    --static-mcp idea `
-    . `
-    "C:\development\maven-repo:ro"
-```
-
-Apply the kit to an existing sandbox (restarts the sandbox, VM state is kept):
-
-```powershell
-sbx kit add <sandbox-name> "git+https://github.com/dboeckli/opencode-sandbox-kit.git#dir=opencode-agent"
-```
-
-> **Sandbox quirk:** Before any `./mvnw` in the sandbox run `export npm_config_bin_links=false`
-> (Spotless/prettier otherwise fails with EPERM on the mounted workspace).
-
 ## Observability / Monitoring Setup
 
 This project ships a complete observability setup with **OpenTelemetry** and multiple backends.
@@ -191,4 +124,25 @@ The following UIs are available:
     - Search index pattern: `traces-apm*,apm-*,traces-*.otel-*,logs-apm*,apm-*,logs-*.otel-*,metrics-apm*,apm-*,metrics-*.otel-*`
 - **Elastic APM Server** – OTLP endpoint for APM
   - OTLP HTTP: `http://localhost:8200` (mapped to `apm-server:8200` via port mapping)
+
+## Sandbox (local dev environment)
+
+The sandbox is provisioned by the opencode-sandbox-kit and runs as a Docker container. It mounts this
+repo, starts the agent, and connects the IntelliJ MCP server.
+
+Allow the kit source (GitHub without cloning):
+
+```powershell
+sbx settings set kit.allowedSources --% "[\"docker.io/\",\"github.com/dboeckli/\"]"
+```
+
+Start a new sandbox:
+
+```powershell
+sbx run docker.io/domboeckli/sbx-opencode:latest `
+    --skills=off `
+    --static-mcp idea,k8s,docker `
+    . `
+    "C:\development\maven-repo:ro"
+```
 

@@ -1,6 +1,5 @@
 package ch.dboeckli.example.otel.service;
 
-import io.micrometer.tracing.BaggageInScope;
 import io.micrometer.tracing.CurrentTraceContext;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
@@ -13,7 +12,9 @@ import java.util.Map;
 @Slf4j
 public class HelloService {
 
-    public final static String HELLO_MESSAGE_FROM_SERVICE = "Service Sais Hello...";
+    public static final String HELLO_MESSAGE_FROM_SERVICE = "Service Sais Hello...";
+
+    private static final String SERVICE_STARTED = "service-started";
 
     private final Tracer tracer;
 
@@ -31,16 +32,16 @@ public class HelloService {
 
         Span newSpan = tracer.nextSpan().name("processHello").start();
 
-        try (Tracer.SpanInScope _ = tracer.withSpan(newSpan);
-                BaggageInScope _ = tracer.createBaggageInScope("addedBaggageByService", "echo from service")) {
+        try (var _ = tracer.withSpan(newSpan);
+                var _ = tracer.createBaggageInScope("addedBaggageByService", "echo from service")) {
             log.info("### Hello from Baggage! " + baggageMap);
 
             newSpan.tag("processHello", "spanValue");
 
             // events are visible only in jaeger and zipkin, in kibana not
-            newSpan.event("service-started");
-            log.info("service-started"); // landet in Kibana
-            newSpan.event("service-started");
+            newSpan.event(SERVICE_STARTED);
+            log.info(SERVICE_STARTED); // landet in Kibana
+            newSpan.event(SERVICE_STARTED);
             log.info("service-stopped"); // landet in Kibana
 
             return HELLO_MESSAGE_FROM_SERVICE;

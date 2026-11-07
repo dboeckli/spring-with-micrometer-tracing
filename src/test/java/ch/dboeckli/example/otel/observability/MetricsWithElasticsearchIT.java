@@ -92,7 +92,7 @@ class MetricsWithElasticsearchIT {
             log.info("First metric doc: {}", pretty(hits.get(0).toString()));
             return true;
         }
-        catch (Exception e) {
+        catch (Exception _) {
             return false;
         }
     }
@@ -102,7 +102,7 @@ class MetricsWithElasticsearchIT {
             Object json = OBJECT_MAPPER.readValue(body, Object.class);
             return OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(json);
         }
-        catch (Exception e) {
+        catch (Exception _) {
             return body;
         }
     }

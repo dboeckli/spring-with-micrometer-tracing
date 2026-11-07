@@ -18,7 +18,7 @@ command -v mvn >/dev/null 2>&1 || error_exit "Maven is not installed or not in P
 
 echo 'Will change the version in pom.xml files...'
 
-if [ "$EVENT_NAME" == "pull_request" ]; then
+if [[ "$EVENT_NAME" == "pull_request" ]]; then
 	BRANCH_NAME="PR_$HEAD_REF"
 fi
 echo "### Branch is $BRANCH_NAME"
