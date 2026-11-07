@@ -1,12 +1,14 @@
 package ch.dboeckli.example.otel.observability;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.actuate.observability.AutoConfigureObservability;
+import org.springframework.boot.micrometer.metrics.test.autoconfigure.AutoConfigureMetrics;
+import org.springframework.boot.micrometer.tracing.test.autoconfigure.AutoConfigureTracing;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.boot.resttestclient.TestRestTemplate;
+import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.*;
 import org.springframework.test.context.ActiveProfiles;
@@ -24,9 +26,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
                 "management.otlp.metrics.export.step=5s",
                 // WICHTIG: OpenTelemetry-Metrics-Export-Intervall (Standard: 60000 ms)
                 "otel.metric.export.interval=5000" })
+@AutoConfigureTestRestTemplate
 @ActiveProfiles("local")
 @Slf4j
-@AutoConfigureObservability
+@AutoConfigureMetrics
+@AutoConfigureTracing
 class MetricsWithPrometheusIT {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
