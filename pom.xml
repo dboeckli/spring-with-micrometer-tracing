@@ -66,7 +66,7 @@
     <spring-6-rest-mvc-api.version>0.0.1-SNAPSHOT</spring-6-rest-mvc-api.version>
 
     <!-- Sonar -->
-    <sonar-maven-plugin.version>5.8.0.7211</sonar-maven-plugin.version>
+    <sonar-maven-plugin.version>5.9.0.7382</sonar-maven-plugin.version>
     <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
     <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
     <sonar.language>java</sonar.language>
